@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>¿Conviene? — Comparador de precios de supermercado</title>
+<meta name="description" content="Calcula el precio por gramo, mililitro o unidad y descubre qué oferta realmente conviene.">
+<meta name="theme-color" content="#F5F6EF">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Conviene">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F6EF;
+    --paper-dark:#EBEDE2;
+    --card:#FFFFFF;
+    --ink:#1A2019;
+    --ink-soft:#5B6355;
+    --line:#CBD0C0;
+    --accent-oferta:#E8482C;
+    --accent-oferta-ink:#7A2013;
+    --accent-ahorro:#2E7D4F;
+    --accent-ahorro-soft:#E4F2E8;
+    --accent-warn:#C98A12;
+    --radius:14px;
+    --mono:'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    --display:'Archivo Black', 'Arial Black', sans-serif;
+    --body:'Inter', -apple-system, system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 1.4px);
+    background-size: 14px 14px;
+    color:var(--ink);
+    font-family:var(--body);
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:48px;
+  }
+
+  a{color:var(--accent-ahorro);}
+
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:0 16px;
+  }
+
+  /* ---------- HEADER (recibo) ---------- */
+  header.receipt-top{
+    background:var(--card);
+    margin:0 auto;
+    max-width:640px;
+    padding:22px 16px 16px;
+    text-align:center;
+    position:relative;
+  }
+  header.receipt-top .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.14em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  header.receipt-top h1{
+    font-family:var(--display);
+    font-size:clamp(28px,7vw,40px);
+    margin:0;
+    letter-spacing:-0.01em;
+    line-height:1;
+  }
+  header.receipt-top h1 span{
+    color:var(--accent-oferta);
+  }
+  header.receipt-top p.tagline{
+    font-family:var(--mono);
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin:8px 0 0;
+  }
+  .perforation{
+    height:14px;
+    background:
+      radial-gradient(circle 7px at 0 50%, transparent 7px, var(--paper) 7.5px) left/28px 14px repeat-x,
+      var(--card);
+    position:relative;
+  }
+  .perforation::after{
+    content:"";
+    position:absolute;
+    left:16px;right:16px;top:7px;
+    border-top:2px dashed var(--line);
+  }
+
+  main{padding-top:18px;}
+
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    border:1px solid var(--line);
+    padding:18px;
+    margin-bottom:16px;
+    position:relative;
+  }
+
+  /* price-tag notch */
+  .tag-card{
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
+  }
+  .tag-card::before{
+    content:"";
+    position:absolute;
+    top:9px; right:9px;
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--paper);
+    border:1.5px solid var(--ink-soft);
+  }
+
+  .card h2{
+    font-family:var(--display);
+    font-size:16px;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    margin:0 0 14px;
+  }
+
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+  .field input[type=text],
+  .field input[type=number],
+  .field select{
+    width:100%;
+    font-family:var(--body);
+    font-size:16px;
+    padding:11px 12px;
+    border-radius:10px;
+    border:1.5px solid var(--line);
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .field input:focus,
+  .field select:focus{
+    outline:2.5px solid var(--accent-ahorro);
+    outline-offset:1px;
+    border-color:var(--accent-ahorro);
+  }
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;}
+
+  .prefix-input{position:relative;}
+  .prefix-input span{
+    position:absolute;left:12px;top:50%;transform:translateY(-50%);
+    font-family:var(--mono);color:var(--ink-soft);font-size:15px;
+    pointer-events:none;
+  }
+  .prefix-input input{padding-left:26px !important;}
+
+  .oferta-extra{
+    display:none;
+    margin-top:-2px;
+  }
+  .oferta-extra.show{display:block;}
+
+  .helptext{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+
+  button.btn-add{
+    width:100%;
+    background:var(--accent-oferta);
+    color:#fff;
+    border:none;
+    padding:14px;
+    font-family:var(--display);
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    border-radius:10px;
+    cursor:pointer;
+    margin-top:4px;
+    transition:transform .08s ease;
+  }
+  button.btn-add:active{transform:scale(0.98);}
+
+  /* ---------- LISTA / GRUPOS ---------- */
+  .group{margin-bottom:20px;}
+  .group-title{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:0 0 8px 2px;
+  }
+  .group-title::after{
+    content:"";
+    flex:1;
+    border-top:1.5px dashed var(--line);
+  }
+
+  .item{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+    margin-bottom:8px;
+    position:relative;
+    overflow:hidden;
+  }
+  .item.winner{
+    border-color:var(--accent-ahorro);
+    background:var(--accent-ahorro-soft);
+  }
+  .item-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .item-name{
+    font-weight:700;
+    font-size:15px;
+    word-break:break-word;
+  }
+  .item-detail{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:3px;
+  }
+  .item-price{
+    font-family:var(--mono);
+    font-weight:600;
+    font-size:19px;
+    white-space:nowrap;
+    text-align:right;
+  }
+  .item-price small{
+    display:block;
+    font-size:10.5px;
+    font-weight:500;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+  }
+  .item-del{
+    background:none;border:none;color:var(--ink-soft);
+    font-size:18px;cursor:pointer;line-height:1;padding:2px 4px;
+    position:absolute; top:8px; right:8px;
+  }
+  .item.winner .item-del{position:static;}
+
+  .stamp{
+    display:inline-block;
+    font-family:var(--display);
+    font-size:11px;
+    letter-spacing:.05em;
+    color:var(--accent-ahorro);
+    border:2px solid var(--accent-ahorro);
+    border-radius:6px;
+    padding:2px 7px;
+    transform:rotate(-4deg);
+    mix-blend-mode:multiply;
+    margin-top:6px;
+  }
+
+  .empty{
+    text-align:center;
+    padding:36px 16px;
+    color:var(--ink-soft);
+    font-family:var(--mono);
+    font-size:13px;
+  }
+
+  .summary{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-bottom:16px;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.6;
+  }
+  .summary b{color:#8FE0AE;}
+
+  .clear-btn{
+    width:100%;
+    background:none;
+    border:1.5px dashed var(--line);
+    color:var(--ink-soft);
+    padding:10px;
+    border-radius:10px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    cursor:pointer;
+    margin-top:6px;
+  }
+
+  footer{
+    max-width:640px;
+    margin:24px auto 0;
+    padding:0 16px;
+    text-align:center;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  footer button{
+    background:none;border:none;color:var(--accent-ahorro);
+    font-family:var(--mono);font-size:11px;text-decoration:underline;cursor:pointer;
+  }
+
+  .modal-bg{
+    display:none;
+    position:fixed;inset:0;background:rgba(20,24,18,.55);
+    align-items:center;justify-content:center;padding:20px;z-index:50;
+  }
+  .modal-bg.show{display:flex;}
+  .modal{
+    background:var(--card);border-radius:14px;padding:20px;max-width:420px;
+    font-size:13.5px;
+  }
+  .modal h3{font-family:var(--display);font-size:16px;margin-top:0;}
+  .modal ol{padding-left:18px;}
+  .modal button{
+    margin-top:12px;width:100%;padding:10px;border:none;border-radius:8px;
+    background:var(--ink);color:#fff;font-family:var(--body);font-weight:600;cursor:pointer;
+  }
+
+  @media (max-width:380px){
+    .row3{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header class="receipt-top">
+  <div class="eyebrow">Boleta de comparación · #001</div>
+  <h1>¿CON<span>VIENE</span>?</h1>
+  <p class="tagline">precio real por gramo · mililitro · unidad</p>
+</header>
+<div class="perforation"></div>
+
+<div class="wrap">
+<main>
+
+  <section class="card tag-card">
+    <h2>Agregar producto</h2>
+    <form id="form-producto">
+      <div class="field">
+        <label for="nombre">Nombre del producto</label>
+        <input type="text" id="nombre" placeholder="Ej: Detergente Marca A" required>
+      </div>
+
+      <div class="row2">
+        <div class="field prefix-input">
+          <label for="precio">Precio pagado</label>
+          <span>$</span>
+          <input type="number" id="precio" inputmode="numeric" min="0" step="1" placeholder="2990" required>
+        </div>
+        <div class="field">
+          <label for="cantidad">Contenido</label>
+          <input type="number" id="cantidad" inputmode="decimal" min="0" step="any" placeholder="900" required>
+        </div>
+      </div>
+
+      <div class="row3">
+        <div class="field">
+          <label for="unidad">Unidad de medida</label>
+          <select id="unidad">
+            <option value="g">Gramos (g)</option>
+            <option value="kg">Kilos (kg)</option>
+            <option value="ml">Mililitros (ml)</option>
+            <option value="l">Litros (L)</option>
+            <option value="un">Unidades (ej: pañales, huevos)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="oferta">Tipo de oferta</label>
+          <select id="oferta">
+            <option value="normal">Precio normal</option>
+            <option value="2x1">2x1</option>
+            <option value="3x2">3x2</option>
+            <option value="descuento">Descuento %</option>
+            <option value="segunda">2ª unidad a %</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field oferta-extra" id="extra-descuento">
+        <label for="valorDescuento">Porcentaje de descuento</label>
+        <input type="number" id="valorDescuento" min="0" max="100" step="1" placeholder="20">
+        <div class="helptext">Ej: 20 → el precio pagado es un 20% menos</div>
+      </div>
+
+      <div class="field oferta-extra" id="extra-segunda">
+        <label for="valorSegunda">2ª unidad a qué % del precio</label>
+        <input type="number" id="valorSegunda" min="0" max="100" step="1" placeholder="50">
+        <div class="helptext">Ej: 50 → la segunda unidad cuesta la mitad. Llevas 2, pagas 1 + 50%</div>
+      </div>
+
+      <button type="submit" class="btn-add">+ Agregar a la lista</button>
+    </form>
+  </section>
+
+  <div id="summary-slot"></div>
+
+  <div id="lista-slot">
+    <div class="empty">Tu lista está vacía.<br>Agrega al menos 2 productos del mismo tipo (peso, volumen o unidades) para comparar.</div>
+  </div>
+
+  <button class="clear-btn" id="btn-clear">🗑 Vaciar lista completa</button>
+
+</main>
+</div>
+
+<footer>
+  ¿Cómo instalar esto en tu celular? <button id="btn-help">Ver instrucciones</button>
+</footer>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h3>Instalar en tu pantalla de inicio</h3>
+    <p><b>Android (Chrome):</b></p>
+    <ol>
+      <li>Toca el menú ⋮ arriba a la derecha</li>
+      <li>Elige "Añadir a pantalla principal" o "Instalar app"</li>
+    </ol>
+    <p><b>iPhone (Safari):</b></p>
+    <ol>
+      <li>Toca el ícono de compartir ⬆️</li>
+      <li>Elige "Añadir a pantalla de inicio"</li>
+    </ol>
+    <p>Así se abre como una app normal, con ícono propio y sin necesidad de escribir la dirección cada vez.</p>
+    <button onclick="document.getElementById('modal-bg').classList.remove('show')">Entendido</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  document.getElementById('btn-help').addEventListener('click', ()=>{
+    document.getElementById('modal-bg').classList.add('show');
+  });
+  document.getElementById('modal-bg').addEventListener('click', (e)=>{
+    if(e.target.id==='modal-bg') e.target.classList.remove('show');
+  });
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
+</script>
+</body>
+</html>

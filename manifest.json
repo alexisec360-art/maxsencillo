@@ -1,0 +1,16 @@
+{
+  "name": "¿Conviene? - Comparador de precios",
+  "short_name": "Conviene",
+  "description": "Calcula el precio real por gramo, mililitro o unidad y descubre qué oferta conviene.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F5F6EF",
+  "theme_color": "#F5F6EF",
+  "orientation": "portrait",
+  "lang": "es-CL",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
